@@ -34,14 +34,13 @@ display: none을 해제시켜봤지만 avatar는 엑박만 떴다.
 아바타 적용이 잘 되어있네.. 도대체 뭐 때문일까 궁금해..!!
 
 개발자 도구로 검사한 결과 내 경로 앞에는 "https://chirpy-img.netlify.app" 주소가 추가로 붙어있었다.
-![image](https://user-images.githubusercontent.com/84312457/221368885-2ac96b43-690f-42d0-ac53-024e92ceaf60.png)
 
 알고 보니 \_config.yml에서 img_cdn에 기본값이 있는데 그게 "https://chirpy-img.netlify.app"였다.
 ![image](https://user-images.githubusercontent.com/84312457/221368885-2ac96b43-690f-42d0-ac53-024e92ceaf60.png)
 
 어쩐지 맨 처음에 avatar를 바꾸기 위해 avatar의 기본값인 commons/avatar.jpg에서 commons 폴더를 찾는데 안 찾아지더랬지.
 
-img_cdn의 주석을 읽으니 img_cdn에 cdn 주소를 입력한 뒤 avatar에서는 "/" + 파일명으로 cdn의 이미지를 불러올 수 있다.
+img_cdn의 주석을 읽으니 img_cdn에 cdn 주소를 입력한 뒤 avatar에서는 "/" + 파일명으로 cdn의 이미지를 불러올 수 있다고 한다.
 
 결국 img_cdn의 주소는 주석처리를 했다.
 \_config.yml파일 변경 후 새로고침으로는 브라우저에서 변경된 사항을 확인할 수 없기 때문에 꼭 bundle exec jekyll serve를 다시 하고 확인해야 한다.
