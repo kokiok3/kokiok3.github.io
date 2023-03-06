@@ -86,13 +86,13 @@ hi
 <br>
 <br>
 
-
+이로써 알 수 있는 것은 commons/avatar.jpg는 chripy 제작자가 avatar.jpg라는 이미지를 자신의 cdn 경로의 commons 폴더에 넣은 것이다.
 
 어쩐지 맨 처음에 avatar를 바꾸기 위해 avatar의 기본값인 commons/avatar.jpg의 commons 폴더를 찾는데 안 찾아지더랬지.
 
 img_cdn의 주석을 읽으니 img_cdn에 cdn 주소를 입력한 뒤 avatar에서는 "/" + 파일명으로 cdn의 이미지를 불러올 수 있다고 한다.
 
-이로써 알 수 있는 것은 commons/avatar.jpg는 chripy 제작자가 avatar.jpg라는 이미지를 자신의 cdn 경로의 commons 폴더에 넣은 것이다.
+
 
 #### 결국 img_cdn의 주소는 주석처리를 했다.  
 > Note: `\_config.yml`파일 변경 후 새로고침으로는 브라우저에서 변경된 사항을 확인할 수 없기 때문에 꼭 `bundle exec jekyll serve`를 다시 하고 확인해야 한다.
