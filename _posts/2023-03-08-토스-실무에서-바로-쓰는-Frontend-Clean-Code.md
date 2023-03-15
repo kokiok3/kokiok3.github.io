@@ -1,9 +1,8 @@
 ---
-home:
 title: 토스 | 실무에서 바로 쓰는 Frontend Clean Code
 date: 2023-03-08
 categories: [개발자 컨퍼런스, 토스]
-tags: [토스, 개발자 컨퍼런스, 클린코드] # TAG names should always be lowercase
+tags: [개발자 컨퍼런스, 토스, 클린코드] # TAG names should always be lowercase
 pin: true
 ---
 
