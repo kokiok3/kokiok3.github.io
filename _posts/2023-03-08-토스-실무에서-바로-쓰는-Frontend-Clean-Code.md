@@ -187,8 +187,363 @@ const label = await getPlannerLabel(plannerId)
 
 ***
 # 클린 코드를 적용해 보았다.
-입사 전부터 있던 코드로 우연한 계기로 해당 코드를 수정할 일이 생겼다.  
-하지만 해당 함수를 이해하는것 부터 오래 걸렸는데, 이번 강의를 듣고 리팩토링을 진행해 보았다.
+입사 전부터 있던 코드로 부분적으로 코드를 수정할 일이 생기면서 해당 코드의 존재를 알게 되었다. 해당 함수를 이해하는것도 오래 걸렸지만 시간이 흐른 뒤 다시봐도 한눈에 알기 힘든 코드였다. 그래서 이번 컨퍼런스의 클린 코드 방법을 사용해 리팩토링을 진행해 보았다.
 
-### 리팩토링 전
-### 리팩토링 후
+**리팩토링 시 노력한 것**
+1. 함수명이 함수의 기능을 잘 설명할 수 있게 제작
+2. 되도록이면 하나의 기능별로 함수 생성
+3. 특히나 여러번 중첩된 if문들로 로직의 흐름을 한눈에 알기가 어려운 점 개선
+
+**코드에 대한 간략한 설명**  
+* '봇 등록' 버튼을 눌러 구입한 봇을 사용할 수 있다.
+* 봇 등록 전 여러 유효성 검사를 거친다.
+* 봇 등록 성공 시 '봇 등록'을 진행하고 실패 시 에러 문구를 띄워준다.
+
+
+### 리팩토링 전 코드
+```javascript
+<button v-on:click="botConnectionFunc('workbot', index)">
+    봇 등록
+</button>
+```
+```javascript
+botConnectionFunc(type, index){
+    const isBotConnection = true;
+    this.$getLocalBotInfo(isBotConnection).then((localData) => {
+        if(localData != null){
+            this.installedBot = localData.programVersion;
+            this.localBotId = localData.botId;
+            this.localMac = localData.macAddress;
+            this.localPcName = localData.machineName;
+
+            this.botConnectionLogic(type, index);
+        }
+    });
+},
+
+// 2022-02-17 supply : botId 복사 -> 등록
+botConnectionLogic(type, index){
+    if(this.installedBot==null && this.localMac==null){
+        this.$alertError($t("봇이 실행중이 아닙니다."));
+        return;
+    }
+
+    if(semverLt(semverCoerce(this.installedBot).version, '3.1.2')){
+        this.$alertInfo('', $t("설치된 버전이 3.1.2 미만일 경우에는 봇아이디를 복사후 시스템 트레이 아이콘 > 우클릭 > Bot ID 등록으로 진행해주세요."));
+        return;
+    }
+    else{
+        let typeName = '';
+        if(type == 'designerBot'){
+            typeName = 'type1';
+        }
+        else if(type == 'workbot'){
+            typeName = 'type2';
+        }
+
+        // 비교자원
+        const macDiv = "mac-" + typeName + "-" + index;             
+        const macVal = document.getElementById(macDiv).innerText;
+        const botIdDiv = "copy-" + typeName + "-" + index;
+        const botIdVal = document.getElementById(botIdDiv).innerText;
+        // 1. 선택 라이선스에 등록된 mac : null (첫 등록)
+        // 2. 선택 라이선스에 등록된 mac, 현재 로컬의 mac : 일치 (진행)
+        // 3. 선택 라이선스에 등록된 mac, 현재 로컬의 mac : 불일치 (재확인 선택)
+
+        let confirmParams = {
+            "msg" : "",
+            "case" : "",
+            "botId" : botIdVal,
+            "mac" : this.localMac
+        }
+
+        if(macVal == "" || macVal == null){
+            confirmParams.msg = $t("PC에 라이선스 사용정보를 등록합니다.");
+            confirmParams.case = 1; 
+            this.registretionBotPermissionConfirm(confirmParams);
+        }
+        else if(macVal == this.localMac){
+            confirmParams.msg = $t("현재 PC에 등록된 라이선스입니다. 재등록 진행하시겠습니까?"); 
+            confirmParams.case = 2; 
+            this.registretionBotPermissionConfirm(confirmParams);
+        }
+        else if(macVal != this.localMac){
+            confirmParams.msg = $t("다른PC에서 사용중인 라이선스입니다. 등록하시겠습니까?");
+            confirmParams.case = 3;  
+            this.registretionBotPermissionConfirm(confirmParams);
+        }
+        else {
+            this.$alertError("mac check error");
+        }
+        return;
+    }
+},
+// 라이선스 매핑등록전 check 확인 함수
+// a) 첫번째확인
+registretionBotPermissionConfirm(confirmParams){
+
+    this.$alertInfoWithCancle("",confirmParams.msg)
+    .then( result => {
+        if ( result.isConfirmed ) {
+            // console.log("a)확인click");
+                if(confirmParams.case === 1 || confirmParams.case === 3){
+                    // 1. 선택 라이선스에 등록된 mac : null (첫 등록)
+                    // 3. 선택 라이선스에 등록된 mac, 현재 로컬의 mac : 불일치 (재확인 선택)
+
+                    // b) localMac에 다른 라이선스가 등로되어있을 경우 마지막질문 b)으로 이동
+                    this.$getBotPermissionByMac(confirmParams.mac).then((data) => {
+                        if(data != null && data != ''){
+                            // console.log('현재 PC에 등록된 라이선스 있음! -> 질문 b)로이동');
+                            // alredyLicenseParams.userId = data.user_id;
+                            // alredyLicenseParams.botId = data.botId;
+                            this.registretionBotPermissionConfirmFinal(confirmParams);
+                            
+                        }else{
+                            // console.log('현재 PC에 등록된 라이선스 없음! -> 진행');
+                            this.registrationBotPermissionFunc(confirmParams.botId);
+                        }
+                    });
+                }
+                else if(confirmParams.case === 2){
+                    // 2. 선택 라이선스에 등록된 mac, 현재 로컬의 mac : 일치 (진행)
+                    // console.log('다시등록이므로 바로 진행! -> 진행');
+                    this.registrationBotPermissionFunc(confirmParams.botId);
+
+                }
+                else{
+                    this.$alertError("registretionBotPermissionConfirm error"); 
+                }
+        }else {
+            // console.log("a)취소");
+        }
+    });
+},
+
+// 라이선스 매핑등록전 check 확인 함수
+// b) 두번째확인
+registretionBotPermissionConfirmFinal(confirmParams){
+    const param = {
+        html: $t("<span>현재 PC에 등록된 라이선스가 이미 있습니다.</span><br><span>재등록 진행하시겠습니까?</span>"),
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: $t('확인'),
+        cancelButtonText: $t('취소'),
+    }
+    this.$alertCustom(param)
+    .then( result => {
+        if ( result.isConfirmed ) {
+            this.registrationBotPermissionFunc(confirmParams.botId);
+        }
+    });
+},
+
+// bot_permission 등록 함수
+registrationBotPermissionFunc(botIdVal){
+    const userId = JSON.parse(sessionStorage.getItem("user")).caller;           
+    // if(true){
+        var params = {
+            "userId" : userId,
+            "mac" : this.localMac,
+            "botId" : botIdVal,
+            "version" : this.installedBot,
+            "pcName" : this.localPcName
+        }
+
+        // botPermission 정보 등록
+        this.$registrationBotPermission(params).then((data) => {
+            if(data > 0){
+                this.localBotId = botIdVal;
+
+                // 화면출력 리로드
+                this.reloadRetrieveLicenseList();
+                // wd정보 http 전송
+                this.botConnectionStart(botIdVal);
+            }else{
+                // console.log('registrationBotPermission Fail');
+            }
+        });
+    // }
+},
+
+// 봇등록 시작 함수
+botConnectionStart(botIdVal){
+        // 1. 해당 botId 가져오기
+    this.$getWDInfo().then((data) => {
+        if(data != null){
+            let httpParams = {
+                "workDesigner" : {
+                    "scheme": data.scheme,
+                    "host":  data.host,
+                    "port": data.port,
+                    "path": data.path,
+                },
+                "botId": botIdVal
+            }
+
+            const cleanBotV = semverCoerce(this.installedBot).version;
+            const botVersionCompare = semverLt(cleanBotV, '3.2.4');
+            if(botVersionCompare){
+                const regExp = /session\/agent/;
+                const replace = httpParams.workDesigner.path.replace(regExp, 'designer/agent');
+                httpParams.workDesigner.path = replace;
+            }
+
+            this.$postBotIdAndServerInfo(httpParams).then(() => {});
+        }
+        else{
+            // console.log(" # getWDInfo fail!" );
+        }
+    });
+}
+```
+### 리팩토링 후 코드
+```javascript
+<button class="btn-nagative1" v-on:click="botConnectionLogic('workbot', index)">
+    봇 등록
+</button>
+```
+```javascript
+botConnectionFunc(){
+    const isBotConnection = true;
+    this.$getLocalBotInfo(isBotConnection).then((localData) => {
+        if(localData != null){
+            this.installedBot = localData.programVersion;
+            this.localBotId = localData.botId;
+            this.localMac = localData.macAddress;
+            this.localPcName = localData.machineName;
+        }
+    });
+},
+isBotRunning(){
+    if(this.installedBot==null && this.localMac==null){
+        this.$alertError($t("봇이 실행중이 아닙니다."));
+        return;
+    }
+},
+checkBotVersion(type){
+    if(semverLt(semverCoerce(this.installedBot).version, '3.1.2')){
+        this.$alertInfo('', $t("설치된 버전이 3.1.2 미만일 경우에는 봇아이디를 복사후 시스템 트레이 아이콘 > 우클릭 > Bot ID 등록으로 진행해주세요."));
+        return;
+    }
+    else{
+        let typeName = '';
+        if(type == 'designerBot'){
+            typeName = 'type1';
+        }
+        else if(type == 'workbot'){
+            typeName = 'type2';
+        }
+        return typeName;
+    }
+},
+categorizeLicenseState(typeName, index){
+    // 비교자원
+    const macDiv = "mac-" + typeName + "-" + index;             
+    const macVal = document.getElementById(macDiv).innerText;
+    const botIdDiv = "copy-" + typeName + "-" + index;
+    const botIdVal = document.getElementById(botIdDiv).innerText;
+
+    let confirmParams = {
+        "msg" : "",
+        "case" : "",
+        "botId" : botIdVal,
+        "mac" : this.localMac
+    }
+
+    // 선택 라이선스에 등록된 mac : null (첫 등록)
+    if(macVal == "" || macVal == null){
+        confirmParams.msg = $t("PC에 라이선스 사용정보를 등록합니다.");
+        confirmParams.case = 1; 
+    }
+    // 선택 라이선스에 등록된 mac, 현재 로컬의 mac : 일치 (진행)
+    else if(macVal == this.localMac){
+        confirmParams.msg = $t("현재 PC에 등록된 라이선스입니다. 재등록 진행하시겠습니까?"); 
+        confirmParams.case = 2; 
+    }
+    // 선택 라이선스에 등록된 mac, 현재 로컬의 mac : 불일치 (재확인 선택)
+    else if(macVal != this.localMac){
+        confirmParams.msg = $t("다른PC에서 사용중인 라이선스입니다. 등록하시겠습니까?");
+        confirmParams.case = 3;  
+    }
+    else {
+        this.$alertError("mac check error");
+        return;
+    }
+    return confirmParams;
+},
+// localMac에 다른 라이선스가 등록 돼 있는지 확인
+isSameLicenseMacAndLocalMac(confirmParams){
+    this.$getBotPermissionByMac(confirmParams.mac).then((data) => {
+        if(data != null && data != ''){
+            const param = {
+                html: $t("<span>현재 PC에 등록된 라이선스가 이미 있습니다.</span><br><span>재등록 진행하시겠습니까?</span>"),
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: $t('확인'),
+                cancelButtonText: $t('취소'),
+            }
+            this.$alertCustom(param)
+            .then( result => {
+                if ( result.isConfirmed ) {
+                    this.registerBot(confirmParams.botId);
+                }
+            });
+        }else{
+            // console.log('현재 PC에 등록된 라이선스 없음! -> 진행');
+            this.registerBot(confirmParams.botId);
+        }
+    });
+},
+askUserToRegisterBot(confirmParams){
+    this.$alertInfoWithCancle("",confirmParams.msg)
+    .then( result => {
+        if ( result.isConfirmed ) {
+            // (첫 등록) || (재확인 선택)
+            if(confirmParams.case === 1 || confirmParams.case === 3){
+                this.isSameLicenseMacAndLocalMac(confirmParams);
+            }
+            // 재등록
+            else if(confirmParams.case === 2){
+                this.registerBot(confirmParams.botId);
+            }
+            else{
+                this.$alertError("registretionBotPermissionConfirm error");
+                return;
+            }
+        }
+    });
+},
+
+botConnectionLogic(type, index){
+    this.botConnectionFunc();
+    this.isBotRunning();
+    const typeName = this.checkBotVersion(type);
+    const confirmParams = this.categorizeLicenseState(typeName, index);
+    this.askUserToRegisterBot(confirmParams);
+},
+
+registerBot(botIdVal){
+    const userId = JSON.parse(sessionStorage.getItem("user")).caller;           
+    const params = {
+        "userId" : userId,
+        "mac" : this.localMac,
+        "botId" : botIdVal,
+        "version" : this.installedBot,
+        "pcName" : this.localPcName
+    }
+
+    // botPermission 정보 등록
+    this.$registrationBotPermission(params).then((data) => {
+        if(data > 0){
+            this.localBotId = botIdVal;
+
+            // 화면 리로드
+            this.reloadRetrieveLicenseList();
+            // wd정보 http 전송
+            this.botConnectionStart(botIdVal);
+        }else{
+            this.$alertError("registrationBotPermission Fail");
+        }
+    });
+},
+```
