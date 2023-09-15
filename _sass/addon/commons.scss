@@ -747,7 +747,8 @@ $sidebar-display: "sidebar-display";
 
   .site-title {
     margin-top: 0.55rem;
-
+    padding: 0px 19px;
+    
     a {
       @extend %clickable-transition;
 
