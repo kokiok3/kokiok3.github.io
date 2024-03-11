@@ -1,207 +1,349 @@
 ---
 title: Promise, async-await, axios
-date: 2024-03-08
+date: 2024-03-11
 categories: [자바스크립트]
-tags: [javascript, promise, async-await, axios] # TAG names should always be lowercase
+tags: [javascript, promise, async-await, axios, error-handling] # TAG names should always be lowercase
 pin: true
 ---
 
 ***
-# **회고**
+> promise, async-await, axios 개념 요약 및 axios를 사용한 비동기 구문의 다양한 예시
 
 ### **목차**
-[**1. 회고를 하는 이유**](#1-회고를-하는-이유)  
-[**2. 업무 리마인드**](#2-업무-리마인드)  
-[**3. 그 외 이벤트 리마인드**](#3-그-외-이벤트-리마인드)  
-[**4. 부족한 점**](#4-부족한-점)  
-[**5. 잘한 점**](#5-잘한-점)  
-[**6. 2024목표 작성**](#6-2024목표-작성)  
-[**7. 목표를 위한 액션**](#7-목표를-위한-액션)  
+[**1. Promise**](#promise)  
+[**2. async-await**](#async-await)  
+[**3. Axios**](#axios)  
+[**4. axios를 사용한 비동기 구문 리팩토링 예시**](#axios를-사용한-비동기-구문-리팩토링-예시)  
+
+<br>
+
+# 서론
+
+프론트엔드 로드맵을 보다가 자바스크립트에 대해서 최소 `실행 컨텍스트, 프로토 타입, 프로미스, 호출 스택, 이벤트 루프`를 알아야 한다는 글을 봤다.
+
+딥 다이브 책에서 한 번씩 봤었지만 설명은 못하겠더라. 그나마 프로미스는 설명할 수 있었는데 디테일한 설명은 할 수 없었다. 그래서 다시 한번 개념을 잡는 시간을 가졌다.
+
+프로미스와 더불어 그와 관련 있는 async await, axios 개념을 살펴볼 것이다. 참고 글을 읽으면서 내용 복기 및 지식 체크를 했기 때문에 이번 글에서는 <u>부족했던 개념에 대해 요약정리만 했다.</u>
 
 <br>
 <br>
 
+---
+# Promise()
 
-### **1. 회고를 하는 이유**
+### **공부 전 내가 생각한 promise 란?**
 
-- 한 해를 어떻게 보냈는지 리마인드
-- 부족한 점을 파악(개발, 운영, 관리 등의 측면에서)
-- 잘한 점 파악(개발, 운영, 관리 등의 측면에서)
-- 2024목표 작성 및 목표 수립을 위한 액션 정하기
+- 비동기 구문을 동기로 사용할 수 있게 해주는 함수
+- resolve(), reject()를 사용해 비동기 값에 대한 return 타입을 지정할 수 있다.
 
-### **2. 업무 리마인드**
+### **Promise 요약**
 
-- UI/UX 개선
-    - 컴포넌트 재사용
-        - 모달
-        - 로딩
-        - 버튼
-        - 타이틀
-        - 서치바
-        - 검색
-    - style 통일
-    - 스크롤 대신 페이지 네이션 적용
-    - 사이드바 접었다 펼치는 기능 적용
-    - 대시보드 각 차트의 같은 범례에 동일 색상 부여
+`new Promise( function(){ } );`
 
-- 프론트 디렉토리 구조 변경
+미래 시점에 결과를 주겠다는 약속  
+비동기 메서드가 동기적으로 작동하는 것처럼 값을 전달한다: 결과값을 즉시 반환하지 않고, 비동기 메서드는 미래의 어떤 시점에 값을 전달하겠다는 ‘promise(약속)’을 반환한다.
 
-- 웍어시스턴트 프로젝트 첫 삽
-    - 화면 설계
-    - vue3/typescript/피니아 로 적용
-    - vite로 적용했지만 서버 이슈로 webpack으로 재 적용
-    - 릴리즈 노트 작성 후 부족한 점을 깨닫고 보완
+promise( )에 인자로 들어가는 함수는 executor로 실행 함수라고도 부른다.  
+executor는 new promise 가 만들어질 때 자동으로 실행된다. executor는 콜백 함수를 반드시 호출한다. executor 인자에는 resolve와 reject가 들어간다. resolve와 reject는 자바스크립트에서 자체 제공하는 콜백이다.
 
-- 코드 리팩토링
-    - axios interceptor 중복 코드
-    - store 기능별 분기
-    - 웍봇 코드 리팩토링(검색 시 불필요한 로직 제거하여 로딩 시간 줄임)
-    
-- 다양한 화면 개발
-    - 봇 알림 등록 화면
-    - 라이선스 발급을 위한 화면
-    - 공지사항
-    - 문의 게시판
+보통 시간이 걸리는 일을 수행할 때 Promise를 사용한다.
 
-- 아이콘 제작
+finally 함수는 인수가 없다.(애초에 결과에 상관없이 일반적으로 행해지는 함수이기 때문에 인수가 필요 없다.) finally에서는 프로미스의 이행/거부 상태를 알 수 없다.
 
-- 기존 오류 수정
-    - 공유 변수 모달 수정: 특정 입력값이 수정 안되는 오류
-    - 로그인 화면의 비밀번호 찾기 타이머 오류 수정(인증번호 보내기 재실행 시 재귀 함수가 중첩으로 실행됨
+### **잊고 있었던 개념**
 
-- 스토리북 검토 및 도입
-    - 서브 프로젝트로 생성
-
-### **3. 그 외 이벤트 리마인드**
-
-- 영어 공부: 월 1회 1시간 외국인 친구와 프리톡 + 매일 10분 영어 : 매일 10분 영어를 최장 96일 동안 했는데 24년 1월에 쉴 틈 없는 업무로 까먹고 안 했더니 그만 리셋되었다. 100일 지속하면 굿즈를 준다고 했는데 너무 아쉬웠다!!
-- 2분기에 3군데 면접을 보았다.
-- 7월에 수영을 시작했다. 성인이 되고 나서 처음으로 생긴 취미이다. 건강한 취미 덕분에 활력이 생기고 체력이 좋아지는 느낌을 받는다.
-- 10월에 수학 공부를 시작했다.
+#Promise는 함수다. #콜백을 이용한다. #콜백 하나를 반드시 호출한다. #finally를 then(), catch() 전에 써도 된다.
 
 <br>
 <br>
 
 ---
 
-2023년은 UI/UX와 화면 개발을 위주로 하고 틈날 때는 기술 및 작업 환경 개선을 위한 기술 도입을 알아봤다. 특이한 점은 사내에서 거의 없는 피그마/포토샵 사용자로 화면 개발 시 디자인까지 도맡아서 하고 있는데, 이 때문인지 새로 추가될 기능의 아이콘 디자인까지 하게 되었다. 디자인에 영 재능이 없지만 피드백을 받으면 더 나은 디자인을 도출할 수 있어 최종적으로는 꽤 괜찮은? 아이콘이 제작되었다.
+# async await
 
-![icon](https://github.com/kokiok3/kokiok3.github.io/assets/84312457/2099cc7c-d44f-4458-a5b3-851cbfd0d8c9){: width="50%"}
+### **공부 전 내가 생각한 async await 란?**
+* Promise와 같은 기능으로 비동기 구문을 동기적으로 사용할 수 있게 해주는 함수
+* ES17에 나온 기능으로 promise chain 을 사용하는 것보다 직관적으로 사용할 수 있다.
+* 함수 앞에 async를 붙여 사용
+* promise 객체를 반환
 
-### **4. 부족한 점**
+### **async await 요약**
 
-**개발**
+일반적으로 await의 대상이 되는 비동기 처리 코드는 Axios 등 같은 프로미스를 반환하는 API 호출 함수이다.
 
-뭔가 “개발 개발한” 개발은 없었던 느낌이다. vue로 view를 만드는 퍼블리싱 작업에 js 한 스푼 얹은 느낌. 그래서 영역 내에서 최대한 할 수 있는 일을 찾아보았다. 마침 UI 컴포넌트를 새로 제작할 때마다 노션으로 정의서를 작성하는 것이 불편하다 생각했는데 같은 팀 동료가 UI 정의서 업데이트를 요구하길래 스토리북을 검토하고 도입하게 되었다. 근데 처음에만 보고 아무도 안 보는 느낌. 나조차도 일이 바쁘다는 핑계, 그리고 UI 업데이트가 생각보다 잦지 않다 보니 스토리북 관리에 소홀했다.
-<br>
-<br>
+async await의 예외 처리는 promise에서는 catch를 사용하는 것처럼, try catch 구문을 이용한다.
 
-**퍼포먼스 부족**
+try catch를 사용해서 에러 핸들링을 하여 예외 상황에 대해 대처해야 한다.
 
-프론트엔드 영역으로 퍼포먼스를 보여주기에는 좀 힘들지 않나 싶다. 비효율 코드 개선, 모듈 제작했지만 사업적인 영역이 아닌 사용자에게 보여주는 화면이라 그런가 내가 일한 거는 별거 아니라고 치부되는 느낌이 들었다.
-<br>
-<br>
 
-**개미 눈물 만큼 있었던 면접 광탈**
+> 자바스크립트의 비동기 처리 코드는 콜백 또는 promise 등을 사용해야 코드의 실행 순서를 보장받을 수 있다.
+{: .prompt-tip }
 
-예고 없이 라이브 코딩 면접을 보게 되었는데 아주 간단한 문제임에도 끙끙 거리는 내 모습에 충격을 받고 그길로 프로그래머스 기초를 풀었다. 기초를 풀면서 느낀 게 js 내장 메서드조차 정확히 몰랐다는 것이다. 맨날 모르면 구글링해서 MDN 보고 쓰고 까먹고 하길 반복했던 탓이다. 그래도 기초 문제를 다 풀면서 메서드 학습이 되어 뿌듯하다. 다양한 이유와 더불어 미숙한 지식을 뽐내었기 때문에 면접도 탈락했겠지만 여태까지 면접을 봐 준 곳들에게 감사함을 느껴야 했다.
-
-<br>
-<br>
-
-### **5. 잘한 점**
-
-이 없지만 써보자면 나의 부족한 점을 객관적으로 파악하고 지속적으로 보완하려고 했다는 점이다. 
-<br>
-<br>
-
-**스토리북 도입**
-
-스토리북을 도입하면서 git 서브 모듈을 공부도 하게 되었고 장기 기억이 부족한 나를 위해 노션에 스토리북 도입을 위한 A-Z의 기록도 해놨다. 또한 스토리북 CI/CD를 위해 Chromatic도 검토했지만 운영 상의 이유로 배제되었다. 
-<br>
-<br>
-
-**기초 트레이닝**
-
-아직은 기초 다음인 입문 단계에 머물고 있지만 123개의 기초 문제를 모두 풀었다. 사실 코딩 문제뿐만 아니라 개발 일을 장기적으로 하기 위해 수학 공부도 10월쯤에 시작했다. 기초부터 다지겠다는 마음으로 초등 4,5,6 학년 모음 문제집을 샀고 두 권 중 한 권을 거~의 끝냈다. 수학을 안 한 지 거의 10년이 다 되어가 많이 까먹었을 거란 생각에 두 권을 샀지만 나 자신을 너무 저평가 했나 보다. 
-
-<br>
-<br>
-
-### **6. 2024목표 작성**
-
-**회사 업무 더 잘하고 싶어**
-
-회사 업무에서 백엔드를 다루는 것과 다루지 않는 사람의 업무 비중이 극명하게 나뉜다. 우리 회사에서는 프론트엔드 업무만 하기에는 개발자로서 부족함이 느껴져서, 그 허전함을 채우기 위해 자바(스프링)와 디비 공부를 시작했다. 현재로서는 내가 진행하는 프론트의 CRUD와 백엔드 오류가 있을 때 원인 파악 정도는 하고 싶다.
-
-실제로 자바 공부를 하면서 객체 지향 프로그래밍에 대해 막연했던 개념을 정의할 수 있어서 좋았다.
-
-<br>
-
-**목표 리스트**
-- 스토리북 지속적인 관리
-- 프로그래머스 입문 문제 모두 풀기
-- 정보처리기사 자격증 공부
-- 중학 수학 문제집 풀기
-- 타입 스크립트 강의 듣기
-- 진행 중인 프로젝트 24년 7월 전에 마무리
-- 리액트 프로젝트
-- 깃허브 블로그 관리
-
-<br>
-<br>
-
-### **7. 목표를 위한 액션**
-
-스토리북 지속적인 관리 
-
-💪 한 달에 한 번씩 부모 프로젝트 클론 하기
-
-<br>
-
-프로그래머스 입문 + 모든 문제 모두 풀기
-
-💪 출퇴근 시간에 최소 한 문제 풀기
-
-<br>
-
-정보처리기사 자격증 공부 
-
-💪 3회차 안에 자격증 취득하기. 점심 시간 또는 집 가서 저녁 먹고 최소 2시간 공부
-
-<br>
-
-중학 수학 문제집 풀기 
-
-💪 점심시간을 활용해 문제 풀기
-
-<br>
-
-타입 스크립트 강의 듣기 
-
-💪 캡틴판교님의 타입 스크립트 수강
-
-<br>
-
-진행 중인 프로젝트 24년 7월 전에 마무리
-
-💪 이틀에 한번 커밋
-
-<br>
-
-리액트 프로젝트
-
-💪 이제는 리액트 공부는 필수. 잡 디스크립션을 분석해 보면 프론트엔드 시장에서는 리액트가 8할이었다. 안 그래도 자바스크립트를 처음 공부할 때 만들었던 프로젝트가 있는데 그것을 프레임워크를 사용해서 전환 개발해도 괜찮을 것 같다.
-
-<br>
-
-깃허브 블로그 관리
-
-💪 그러고 보니 블로그 글을 너무 안 썼다. 욕심 안 부리고 한 달에 게시글 한 개 작성. 솔직히 한 달에 한 개는 작성할 만한 거리가 있다.
 
 <br>
 <br>
 
 ---
 
-뭐라도 하다 보면 쌓이는 날이 오겠지. 결과물이 눈에 보이는 2024년이 되어 보자
+# Axios
+
+통신을 할 때 사용하는 라이브러리.  
+비동기 구문이 많이 쓰이는 곳으로 Promise와 async await를 다룰 때 같이 개념 정리를 하면 좋을 것 같아 정리했다.
+
+### **Axios란**
+
+브라우저와 Node.js에서 사용할 수 있는 promise 기반 HTTP 클라이언트 라이브러리.
+
+.then(), .catch(), .finally() 사용이 가능하다.
+
+axios는 promise API를 지원한다.
+
+async await 도 사용이 가능하다.
+```javascript
+// async-await 예제
+// 함수 외부에 `async` 키워드를 추가하세요.
+async function getUser() {
+  try {
+    const response = await axios.get('/user?ID=12345');
+    console.log(response);
+  } catch (error) {
+    console.error(error);
+  }
+}
+```
+<br>
+<br>
+
+---
+# **종합해 보면**
+
+함수 내에 axios 구문만 있을 때는 axios만 사용해서 작성  
+함수 내에 여러 메서드가 같이 있을 때는 async await를 사용하여 axios 구문 작성
+
+함수 내에 axios 구문만 있을 경우 then()과 catch()로 api 관련 로직만 처리하면 되니까 promise나 async await가 필요 없다.
+하지만 함수 내에 여러 메서드가 있을 때는 실행 순서를 보장받아야 하기 때문에 promise 또는 async await를 사용한다. 
+
+<br>
+<br>
+
+---
+
+막 JS를 처음 공부했을 때, 2년 전쯤, 그리고 지금. 적어도 3번 이상은 Promise에 대해 공부를 했다. 처음에는 몇 번을 읽어도 이해가 안 갔다. 그래도 막 처음 공부했을 때보다는 2년 후에 봤을 때는 좀 더 이해가 됐고, 2년 전보다는 지금 다시 보니 글 이해가 더 됐다. 이제 이론적인 부분은 90%를 흡수한 것 같고 나머지 10%는 실무에서 활용을 하면서 이해하면 될 것 같다.
+
+처음 axios로 통신 코드를 작성했을 때가 생생하다. axios와 promise를 써야 할지 async await를 써야 할지, 예외 처리는 어떻게 해야 할지 막막했는데 이번에 다시 공부를 하면서 정리가 됐다. 그 당시 주먹구구식으로 작성했던 코드에 어떤 부분이 부족한 지가 보인다. 그뿐만 아니라 어떻게 수정해야 할지 명확하게 알게 되었다. 그렇기 때문에 이전에 작성했던 코드를 가져와 리팩토링 예시를 작성했다.
+
+# axios를 사용한 비동기 구문 리팩토링 예시
+
+**리팩토링 필요한 코드**  
+[1. async await를 사용했으면서 에러 핸들링을 안한 것](#1async-await를-사용했으면서-에러-핸들링을-안한-것)  
+[2. 에러 핸들링이 없는 것](#2에러-핸들링이-없는-것)  
+[3. 굳이 promise(), asycn await를 사용한 것](#3굳이-promise-asycn-await를-사용한-것)  
+[4. async await 도 없으면서 try catch 구문으로 감싼 것](#4async-await-도-없으면서-try-catch-구문으로-감싼-것)  
+
+<br>
+
+
+#### 1.async await를 사용했으면서 에러 핸들링을 안한 것  
+axios에서 발생할 수 있는 에러에 대한 처리도 없는 상황
+
+```javascript
+
+[before]
+
+async getApi(){
+    return await axios.get(url, {
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': accessToken()
+        }
+    })
+}
+
+-------------------------------------------------------------------------------
+
+[after]
+
+async getApi(){
+    try {
+        return await axios.get(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': accessToken()
+            }
+        })
+        .then(res=>{
+            if(http통신 response가 성공인지 확인){...}
+            
+            throw new Error(에러 메세지);
+        })
+    } catch (error) {
+        ...에러 핸들링...
+    }
+}
+
+```
+<br>
+
+#### 2.에러 핸들링이 없는 것
+
+```javascript
+[before]
+
+getApi: ()=>{
+    return axios.get(url, {
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': 토큰
+        }
+    })
+    .then(response=>{
+        if(response.data.result === 'success' && response.data.resultCode === 200){
+            const data = response.data.body;
+
+            ...데이터 가공...
+
+            return data;
+        }
+    })
+}
+
+-------------------------------------------------------------------------------
+
+[after]
+
+getApi: ()=>{
+    return axios.get(url, {
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': 토큰
+        }
+    })
+    .then(response=>{
+        if(response.data.result === 'success' && response.data.resultCode === 200){
+            const data = response.data.body;
+
+            ...데이터 가공...
+
+            return data;
+        }
+        throw new Error(에러 메세지);
+    })
+    .catch(err=>{
+        // 에러 핸들링
+    }
+},
+```
+<br>
+
+#### 3.굳이 promise(), asycn await를 사용한 것  
+axios는 promise() 기반으로 작동하기 때문에 .then(), .catch()와 같은 promise chain이 가능하다. 또한 getApi 함수에는 비동기 구문만 담은 로직만 있기 때문에 async await 또는 promise() 사용을 안 해도 된다.
+
+```javascript
+[before]
+
+getApi: async ()=>{
+    return await axios.get(url, {
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': 토큰
+        }
+    })
+    .then(res=>{
+        if(res.data.result === 'success' && res.data.resultCode === 200){
+            return res.data.body;
+        }
+        throw new Error(에러 메세지);
+    })
+    .catch(err=>{
+        ...에러 핸들링...
+    })
+}
+
+-------------------------------------------------------------------------------
+
+[after]
+
+getApi: ()=>{
+    return axios.get(url, {
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': 토큰
+        }
+    })
+    ...이하 동일
+}
+```
+<br>
+
+#### 4.async await 도 없으면서 try catch 구문으로 감싼 것  
+   <u>try-catch문은 동기 코드에서 예외 처리를 하는데 사용되므로 비동기 코드의 에러를 캐치할 수 없다.</u>
+
+```javascript
+[before]
+
+getApi: ()=>{
+    try {
+        return axios.get(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 토큰
+            }
+        })
+        .then(res=>{
+            if(res.data.result === 'success' && res.data.resultCode === 200){
+                return res.data.body;
+            }
+            else {
+                throw new Error(res.message);
+            }
+        })
+    } catch (error) {
+        ...에러 핸들링...
+    }
+}
+
+-------------------------------------------------------------------------------
+
+[after]
+
+getApi: ()=>{
+    return axios.get(url, {
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': 토큰
+        }
+    })
+    .then(res=>{
+        if(res.data.result === 'success' && res.data.resultCode === 200){
+            return res.data.body;
+        }
+        else {
+            throw new Error(res.message);
+        }
+    })
+		.catch((error) {
+        ...에러 핸들링...
+    });
+}
+
+```
+<br>
+
+이번 개념 다지기 시간 이후로 3월에는 그간 작성했던 API 코드를 리팩토링하는 시간을 가질 예정이다. 위의 예시를 바탕으로 상황별로 코드를 작성법을 만든 뒤 코드를 수정할 것이다.
+
+<br>
+<br>
+
+---
+
+참고
+
+[프론트엔드 로드맵 2024 - Google Search](https://www.google.com/search?q=프론트엔드+로드맵+2024&sca_esv=65d2b102cd6037ef&biw=1920&bih=911&sxsrf=ACQVn0-J02Jzh1cIoKTuJUkVhYQmzfcqVA:1709596891508&ei=22DmZezUHoff2roPxu63wAY&udm=&oq=프론트엔드&gs_lp=Egxnd3Mtd2l6LXNlcnAiD-2UhOuhoO2KuOyXlOuTnCoCCAAyChAjGIAEGIoFGCcyChAjGIAEGIoFGCcyChAjGIAEGIoFGCcyBRAAGIAEMgUQABiABDILEAAYgAQYsQMYgwEyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAESIoZUABY0A1wAngAkAEAmAG7AaABlAuqAQQwLjEyuAEDyAEA-AEBmAILoAKZCMICCxAuGIAEGLEDGIMBwgIKEAAYgAQYigUYQ5gDAJIHAzIuOaAHx4wB&sclient=gws-wiz-serp#ip=1)
+
+[프라미스](https://ko.javascript.info/promise-basics)
+
+[자바스크립트 Promise 쉽게 이해하기](https://joshua1988.github.io/web-development/javascript/promise-for-beginners/)
+
+[자바스크립트 async와 await](https://joshua1988.github.io/web-development/javascript/js-async-await/)
+
+[기본 예제-Axios Docs](https://axios-http.com/kr/docs/example)
