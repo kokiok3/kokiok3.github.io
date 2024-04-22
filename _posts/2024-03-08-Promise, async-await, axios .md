@@ -9,6 +9,9 @@ pin: true
 ***
 > promise, async-await, axios 개념 요약 및 axios를 사용한 비동기 구문의 다양한 예시
 
+업데이트 2024년 4월 3일
+
+
 ### **목차**
 [**1. Promise**](#promise)  
 [**2. async-await**](#async-await)  
@@ -41,7 +44,9 @@ pin: true
 `new Promise( function(){ } );`
 
 미래 시점에 결과를 주겠다는 약속  
-비동기 메서드가 동기적으로 작동하는 것처럼 값을 전달한다: 결과값을 즉시 반환하지 않고, 비동기 메서드는 미래의 어떤 시점에 값을 전달하겠다는 ‘promise(약속)’을 반환한다.
+<u>비동기 메서드가 동기적으로 작동하는 것처럼 값을 전달한다</u>: 결과값을 즉시 반환하지 않고, 비동기 메서드는 미래의 어떤 시점에 값을 전달하겠다는 ‘promise(약속)’을 반환한다.
+
+ \+ `업데이트 2024년 4월 3일` 비동기 작업을 동기적으로 실행하는 것이 아닌, 비동기 작업이 성공 또는 실패했을 때의 결과를 나타낸다. <u>다시 말해, Promise를 사용해도 비동기적으로 작동하되, 비동기 작업의 결과를 다루는데</u> 있어서 편리하게 다룰 수 있게 도와준다. +
 
 promise( )에 인자로 들어가는 함수는 executor로 실행 함수라고도 부른다.  
 executor는 new promise 가 만들어질 때 자동으로 실행된다. executor는 콜백 함수를 반드시 호출한다. executor 인자에는 resolve와 reject가 들어간다. resolve와 reject는 자바스크립트에서 자체 제공하는 콜백이다.
@@ -69,10 +74,23 @@ finally 함수는 인수가 없다.(애초에 결과에 상관없이 일반적�
 
 ### **async await 요약**
 
-일반적으로 await의 대상이 되는 비동기 처리 코드는 Axios 등 같은 프로미스를 반환하는 API 호출 함수이다.
+일반적으로 <u>await의 대상이 되는 비동기 처리 코드는</u> Axios 등 같은 <u>프로미스를 반환하는 API 호출 함수이다.</u>  
+> \+ `업데이트 2024년 4월 3일` 
+ 비동기와 promise, async-await가 완전히 이해됐다고 착각하고 테스트 코드를 짜보았다. 근데 생각처럼 동작하지 않았다. Chat gpt에게 물어봤다. 그 중 일부분을 발췌했다.  
+**나:**  
+ ```
+ async function cooking() {
+    await new Promise(resolve => {
+        setTimeout(() => {
+            console.log('cooking');
+            resolve(); // 비동기 작업이 완료됐음을 알림
+        }, 3000);
+    });
+} 에서 Promise안쓰면 안돼?
+ ```
+ **Chat gpt:** setTimeout 함수는 비동기적으로 실행되는 함수이기 때문에 Promise 없이는 await를 사용할 수 없습니다. await는 항상 Promise 객체를 반환하는 함수나 비동기 작업 앞에서만 사용될 수 있습니다. 그렇기 때문에 setTimeout을 Promise 없이 사용하려면 Promise를 직접 생성하여 사용해야 합니다. +
 
 async await의 예외 처리는 promise에서는 catch를 사용하는 것처럼, try catch 구문을 이용한다.
-
 try catch를 사용해서 에러 핸들링을 하여 예외 상황에 대해 대처해야 한다.
 
 
@@ -115,6 +133,23 @@ async function getUser() {
 <br>
 
 ---
+
+\+ `업데이트 2024년 4월 3일` 
+# try catch
+에러로 인해 스크립트가 죽지 않아야 할 때 사용
+
+런타임 에러에만 동작한다.
+
+동기적으로 작동한다.
+
+예기치 못한 상황1 : [서버에서 전달받은 데이터가 잘못되어 에러를 발생하는 경우] 프런트에서 try catch를 통해 예외처리가 가능.
++
+
+<br>
+<br>
+
+---
+
 # **종합해 보면**
 
 함수 내에 axios 구문만 있을 때는 axios만 사용해서 작성  
