@@ -88,7 +88,7 @@ finally 함수는 인수가 없다.(애초에 결과에 상관없이 일반적�
     });
 } 에서 Promise안쓰면 안돼?
  ```
- **Chat gpt:** setTimeout 함수는 비동기적으로 실행되는 함수이기 때문에 Promise 없이는 await를 사용할 수 없습니다. await는 항상 Promise 객체를 반환하는 함수나 비동기 작업 앞에서만 사용될 수 있습니다. 그렇기 때문에 setTimeout을 Promise 없이 사용하려면 Promise를 직접 생성하여 사용해야 합니다. +
+ **Chat gpt:** setTimeout 함수는 비동기적으로 실행되는 함수이기 때문에 Promise 없이는 await를 사용할 수 없습니다. <u>await는 항상 Promise 객체를 반환하는 함수나 비동기 작업 앞에서만 사용될 수 있습니다.</u> 그렇기 때문에 setTimeout을 Promise 없이 사용하려면 Promise를 직접 생성하여 사용해야 합니다. +
 
 async await의 예외 처리는 promise에서는 catch를 사용하는 것처럼, try catch 구문을 이용한다.
 try catch를 사용해서 에러 핸들링을 하여 예외 상황에 대해 대처해야 한다.
