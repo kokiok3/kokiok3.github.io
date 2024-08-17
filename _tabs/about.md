@@ -8,11 +8,8 @@ order: 4
 {: .prompt-tip } -->
 
 
-# 안녕하세요, 공부 인증을 즐기는 정소현입니다.
+# 효율적인 방법을 모색하는 개발자입니다.
 
-<!-- <p align="left"><img src="https://github.com/kokiok3/kokiok3.github.io/assets/84312457/1f798545-ff7c-4223-866e-1f55f4677093" height="100px" width="300px"></p> -->
-<!-- <p align="left"><img src="https://github.com/kokiok3/kokiok3.github.io/assets/84312457/57b2c3e9-30ea-4d83-9b5c-e7b58c2ce9ef" width="450px"></p> -->
-<p align="left"><img src="https://github.com/kokiok3/kokiok3.github.io/assets/84312457/aca965c7-9ebb-4383-84b0-dfdb560f142d" width="450px"></p>
 
 # 정소현 🐔
 
