@@ -36,17 +36,69 @@ pin: true
 
 ### **공부 전 내가 생각한 promise 란?**
 
-- 비동기 구문을 동기로 사용할 수 있게 해주는 함수
-- resolve(), reject()를 사용해 비동기 값에 대한 return 타입을 지정할 수 있다.
+1. 비동기 구문을 동기로 사용할 수 있게 해주는 함수
+2. resolve(), reject()를 사용해 비동기 값에 대한 return 타입을 지정할 수 있다.
 
 ### **Promise 요약**
 
 `new Promise( function(){ } );`
 
 미래 시점에 결과를 주겠다는 약속  
-<u>비동기 메서드가 동기적으로 작동하는 것처럼 값을 전달한다</u>: 결과값을 즉시 반환하지 않고, 비동기 메서드는 미래의 어떤 시점에 값을 전달하겠다는 ‘promise(약속)’을 반환한다.
+비동기 메서드가 동기적으로 작동하는 것처럼 값을 전달한다: 결과값을 즉시 반환하지 않고, 비동기 메서드는 미래의 어떤 시점에 값을 전달하겠다는 ‘promise(약속)’을 반환한다.
+
+> **공부 전 내가 생각한 promise 란? 의 '비동기 구문을 동기로 사용할 수 있게 해주는 함수'에 대한 답변으로**  
+> 비동기 작업을 동기적으로 실행하는 것이 아닌, 비동기 작업이 성공 또는 실패했을 때의 결과를 나타낸다. 다시 말해, Promise를 사용하면 비동기적으로 작동하되 비동기 작업의 결과를 다루는데 있어서 편리하게 다룰 수 있게 도와준다.
+{: .prompt-info }
+
+
+### 예제
+아래의 allProcess() 함수는 order(), cooking(), serving() 순으로 호출하지만 cooking() 함수는 비동기적으로 작동하기 때문에 실제 결과는 order, serving, cooking 을 반환한다. 이때 결과를 order, cooking, serving 순으로 반환하고 싶다면 promise()를 사용할 수 있다.
+
+```javascript
+function order(){
+    console.log('order');
+}
+function cooking(){
+    setTimeout(()=>{
+        console.log('cooking');
+    }, 3000);
+}
+function serving(){
+    console.log('serving');
+}
 
  \+ `업데이트 2024년 4월 3일` 비동기 작업을 동기적으로 실행하는 것이 아닌, 비동기 작업이 성공 또는 실패했을 때의 결과를 나타낸다. <u>다시 말해, Promise를 사용해도 비동기적으로 작동하되, 비동기 작업의 결과를 다루는데</u> 있어서 편리하게 다룰 수 있게 도와준다. +
+function allProcess(){
+    order();
+    cooking();
+    serving();
+}
+```
+
+cooking함수에서 setTimeout을 promise함수로 감싸고, allProcess함수의 cooking함수의 then구문에서는 then()구문에 serving함수를 포함하면, 의도한대로 order, cooking, serving이 반환된다.
+```javascript
+function order(){
+    console.log('order');
+}
+function cooking(){
+    return new Promise((resolve)=>{
+        setTimeout(()=>{
+            console.log('cooking');
+            resolve();
+        }, 3000);
+    });
+}
+function serving(){
+    console.log('serving');
+}
+
+function allProcess(){
+    order();
+    cooking().then(()=>{
+        serving();
+    });
+}
+```
 
 promise( )에 인자로 들어가는 함수는 executor로 실행 함수라고도 부른다.  
 executor는 new promise 가 만들어질 때 자동으로 실행된다. executor는 콜백 함수를 반드시 호출한다. executor 인자에는 resolve와 reject가 들어간다. resolve와 reject는 자바스크립트에서 자체 제공하는 콜백이다.
@@ -91,6 +143,7 @@ finally 함수는 인수가 없다.(애초에 결과에 상관없이 일반적�
  **Chat gpt:** setTimeout 함수는 비동기적으로 실행되는 함수이기 때문에 Promise 없이는 await를 사용할 수 없습니다. <u>await는 항상 Promise 객체를 반환하는 함수나 비동기 작업 앞에서만 사용될 수 있습니다.</u> 그렇기 때문에 setTimeout을 Promise 없이 사용하려면 Promise를 직접 생성하여 사용해야 합니다. +
 
 async await의 예외 처리는 promise에서는 catch를 사용하는 것처럼, try catch 구문을 이용한다.
+
 try catch를 사용해서 에러 핸들링을 하여 예외 상황에 대해 대처해야 한다.
 
 
@@ -150,7 +203,6 @@ async function getUser() {
 <br>
 
 ---
-
 # **종합해 보면**
 
 함수 내에 axios 구문만 있을 때는 axios만 사용해서 작성  
