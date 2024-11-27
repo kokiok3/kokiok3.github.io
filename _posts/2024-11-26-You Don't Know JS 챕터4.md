@@ -174,6 +174,25 @@ JS에서 어떻게 타입을 다루고 타입 강제 변환시기에 대해 배�
 원시타입 - 복사  
 객체타입 - 참조  
 
+```javascript
+// 예제1
+let my = 'my';
+let you = my;
+
+you = 'you';
+console.log('my:', my);
+console.log('you:', you);
+
+// 예제2
+let myArr = ['my', 'me', 'i'];
+let youArr = myArr;
+
+youArr.push('you');
+
+console.log('myArr:', myArr);
+console.log('youArr:', youArr);
+```
+
 ## 2. 다양한 형태의 함수
 익명 함수 표현식 => 이름 추론  
 
