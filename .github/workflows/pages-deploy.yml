@@ -16,6 +16,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 # Allow one concurrent deployment
 concurrency:
@@ -44,6 +45,7 @@ jobs:
         with:
           ruby-version: 3.2 # reads from a '.ruby-version' or '.tools-version' file if 'ruby-version' is omitted
           bundler-cache: true
+          cache-version: 1
 
       - name: Build site
         run: bundle exec jekyll b -d "_site${{ steps.pages.outputs.base_path }}"
